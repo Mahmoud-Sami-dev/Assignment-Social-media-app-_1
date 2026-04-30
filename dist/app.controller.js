@@ -19,6 +19,7 @@ function bootstrap() {
     //routing
     app.use("/auth", modules_1.authRouter);
     app.use("/post", modules_1.postRouter);
+    app.use("/comment", modules_1.commentRouter);
     // global error handler
     app.use((error, req, res, next) => {
         return res.status(error.cause || 500).json({
