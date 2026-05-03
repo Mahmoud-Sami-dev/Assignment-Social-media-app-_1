@@ -20,7 +20,8 @@ const addReaction = async (addReactionDTO, userId, repo) => {
         _id: addReactionDTO.id,
     }, {}, {});
     if (!docExist) {
-        throw new utils_1.NotFoundException("Document not found");
+        // Post - Comment - Story - Reel
+        throw new utils_1.NotFoundException(`${repo.model.modelName} not found`);
     }
     const collectionName = docExist.collection.name;
     const userReactionRepository = new user_reaction_repository_1.UserReactionRepository();
@@ -29,7 +30,7 @@ const addReaction = async (addReactionDTO, userId, repo) => {
     // if no reaction >> create new reaction
     if (!userReaction) {
         await userReactionRepository.create({
-            onModel: toModel(collectionName),
+            onModel: toModel(collectionName), // model >> Post - Comment - Reel - Story / collection >> posts - comments - reels - stories
             refId: addReactionDTO.id,
             userId,
             reaction: addReactionDTO.reaction,

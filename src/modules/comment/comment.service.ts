@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { CreateCommentDTO } from "./comment.dto";
 import { PostRepository } from "../../DB/models/post/post.repository";
 import { CommentRepository } from "../../DB/models/comment/comment.repository";
-import { NotFoundException } from "../../common";
+import { IPost, NotFoundException, UnAuthorizedException } from "../../common";
 
 class CommentService {
   constructor(
@@ -16,15 +16,18 @@ class CommentService {
     userId: Types.ObjectId,
   ) {
     //postId check existence
-    const postExist = await this.postRepository.getOne(
-      { _id: params.postId },
-      {},
-      {},
-    );
-    if (!postExist) throw new NotFoundException("Post not found");
+    if (params.postId) {
+      const postExist = await this.postRepository.getOne(
+        { _id: params.postId },
+        {},
+        {},
+      );
+      if (!postExist) throw new NotFoundException("Post not found");
+    }
     //if parentId >> reply check parentId
+    let parentCommentExist = undefined;
     if (params.parentId) {
-      const parentCommentExist = await this.commentRepository.getOne(
+      parentCommentExist = await this.commentRepository.getOne(
         { _id: params.parentId },
         {},
         {},
@@ -33,10 +36,11 @@ class CommentService {
         throw new NotFoundException("Parent comment not found");
     }
     //if yes create comment
-    this.commentRepository.create({
+    return await this.commentRepository.create({
       ...createCommentDTO,
-      ...params,
+      ...params, //{postId:1, parentId:2},{parentId:2}
       userId,
+      postId: params.postId || parentCommentExist?.postId,
     });
   }
   // method >> get >> not have body
@@ -46,8 +50,35 @@ class CommentService {
       postId: params.postId,
       parentId: params.parentId,
     });
-    if(comments.length ==0)throw new NotFoundException("no comments")
+    if (comments.length == 0) throw new NotFoundException("no comments");
     return comments;
+  }
+  // delete comment
+  async delete(id: Types.ObjectId, userId: Types.ObjectId) {
+    //check comment existence
+    const commentExist = await this.commentRepository.getOne(
+      { _id: id },
+      {},
+      { populate: [{ path: "postId" }] },
+    ); // {} | null
+    if (!commentExist) throw new NotFoundException("comment not found");
+    //{_id,content, attachment, userId,parentId:1, postId:[{userid:1}]}
+    //commentAuthor comment.userId
+    let commentAuthor = commentExist.userId.toString();
+    //comment.postId
+    //postRepository.getOne(_id:comment.postId)
+    //postAuthor post.userId
+    let postAuthor = (commentExist.postId as IPost[])[0]?.userId.toString();
+    if (![postAuthor, commentAuthor].includes(userId.toString())) {
+      //userId != commentAuthor && userId != postAuthor
+      throw new UnAuthorizedException(
+        "you are not allowed to delete this comment",
+      );
+    }
+    //delete comment
+    await this.commentRepository.deleteOne({ _id: id });
+    // mongoose middleware 
+    //document method & query method
   }
 }
 

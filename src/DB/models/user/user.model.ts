@@ -19,8 +19,36 @@ const schema = new Schema<IUser>(
       enum: SYS_PROVIDER,
       default: SYS_PROVIDER.system,
     },
-    gender: { type: Number, enum: SYS_GENDER, default:SYS_GENDER.male },
+    gender: { type: Number, enum: SYS_GENDER, default: SYS_GENDER.male },
   },
   { timestamps: true },
 );
+
+// // pre middleware // pre Hook
+// schema.pre("updateOne", function () {
+//   // logic of code for hashing password
+// //1
+//   console.log(this);
+// }); // query middleware
+// schema.pre("save", function () {
+//   // logic of code for encrypted
+//   //2
+// });
+// schema.pre("updateOne",{document:true, query:false}, function () {
+//   // logic of code for hashing password
+// //3
+//   console.log(this); 
+// }); // document middleware
+
+
 export const User = model<IUser>("User", schema);
+
+
+//query return user
+//user._id error >> IUser >> not have _id
+//user.createdAt error >> IUser >> not have createdAt
+//user.updateAt error >> IUser >> not have updateAt
+
+//user.save()
+//user._v
+//user.deleteOne()

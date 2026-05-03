@@ -10,6 +10,9 @@ class AbstractRepository {
      *
      * @param item is a generic data which passed to DB
      */
+    get model() {
+        return this._model;
+    }
     async create(item) {
         const doc = new this._model(item); // ram
         return doc.save();

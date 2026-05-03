@@ -3,8 +3,10 @@ import postService from "./post.service";
 import { Types } from "mongoose";
 import { isValid } from "../../middleware";
 import { createPostSchema } from "./post.dto";
+import { default as commentRouter } from "../comment/comment.controller";
 
-const router = Router();
+const router = Router(); //sub app
+router.use("/:postId/comment", commentRouter)
 //method = post >> create , url /post
 router.post(
   "/",

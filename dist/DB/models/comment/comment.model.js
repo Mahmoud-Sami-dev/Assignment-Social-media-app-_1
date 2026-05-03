@@ -11,4 +11,17 @@ const schema = new mongoose_1.Schema({
     attachment: String,
     reactionsCount: { type: Number, default: 0 },
 }, { timestamps: true });
+schema.pre("deleteOne", async function () {
+    //console.log(this); // query
+    let filter = this.getFilter(); // {_id:parentId}
+    // find all replies
+    const replies = await this.model.find({ parentId: filter._id }); // [ {} , {} , {} ] | []
+    // if replies >> loop deleteOne
+    if (replies.length > 0) {
+        for (const reply of replies) {
+            await this.model.deleteOne({ _id: reply._id });
+        }
+    }
+    // return >> next()
+});
 exports.comment = (0, mongoose_1.model)("Comment", schema);

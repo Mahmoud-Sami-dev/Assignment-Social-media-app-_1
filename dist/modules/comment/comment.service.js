@@ -12,20 +12,24 @@ class CommentService {
     }
     async create(createCommentDTO, params, userId) {
         //postId check existence
-        const postExist = await this.postRepository.getOne({ _id: params.postId }, {}, {});
-        if (!postExist)
-            throw new common_1.NotFoundException("Post not found");
+        if (params.postId) {
+            const postExist = await this.postRepository.getOne({ _id: params.postId }, {}, {});
+            if (!postExist)
+                throw new common_1.NotFoundException("Post not found");
+        }
         //if parentId >> reply check parentId
+        let parentCommentExist = undefined;
         if (params.parentId) {
-            const parentCommentExist = await this.commentRepository.getOne({ _id: params.parentId }, {}, {});
+            parentCommentExist = await this.commentRepository.getOne({ _id: params.parentId }, {}, {});
             if (!parentCommentExist)
                 throw new common_1.NotFoundException("Parent comment not found");
         }
         //if yes create comment
-        this.commentRepository.create({
+        return await this.commentRepository.create({
             ...createCommentDTO,
-            ...params,
+            ...params, //{postId:1, parentId:2},{parentId:2}
             userId,
+            postId: params.postId || parentCommentExist?.postId,
         });
     }
     // method >> get >> not have body
@@ -38,6 +42,28 @@ class CommentService {
         if (comments.length == 0)
             throw new common_1.NotFoundException("no comments");
         return comments;
+    }
+    // delete comment
+    async delete(id, userId) {
+        //check comment existence
+        const commentExist = await this.commentRepository.getOne({ _id: id }, {}, { populate: [{ path: "postId" }] }); // {} | null
+        if (!commentExist)
+            throw new common_1.NotFoundException("comment not found");
+        //{_id,content, attachment, userId,parentId:1, postId:[{userid:1}]}
+        //commentAuthor comment.userId
+        let commentAuthor = commentExist.userId.toString();
+        //comment.postId
+        //postRepository.getOne(_id:comment.postId)
+        //postAuthor post.userId
+        let postAuthor = commentExist.postId[0]?.userId.toString();
+        if (![postAuthor, commentAuthor].includes(userId.toString())) {
+            //userId != commentAuthor && userId != postAuthor
+            throw new common_1.UnAuthorizedException("you are not allowed to delete this comment");
+        }
+        //delete comment
+        await this.commentRepository.deleteOne({ _id: id });
+        // mongoose middleware 
+        //document method & query method
     }
 }
 exports.default = new CommentService(new post_repository_1.PostRepository(), new comment_repository_1.CommentRepository());

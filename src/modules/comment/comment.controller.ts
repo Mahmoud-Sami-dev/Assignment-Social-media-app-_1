@@ -6,8 +6,9 @@ import { commentRepo } from "../../DB/models/comment/comment.repository";
 
 //express 4.x.x >> /:parentId?
 //express 5.x.x >> {/:parentId}
-const router = Router();
-
+const router = Router({ mergeParams: true });
+// /comment/add-reaction >> add reaction on comment
+// /post/postId/comment/add-reaction
 router.post(
   "/add-reaction",
   //todo: auth,
@@ -23,21 +24,25 @@ router.post(
     res.sendStatus(204);
   },
 );
-//url= /comment/postId/parentId >> parentId is optional
-//url= /comment/postId
+// /comment/:commentId>> reply
+// /post/:postId/comment/:commentId >> reply
+// /post/:postId/comment >> top level comment
+//body >> {content, attachments} + params >> {comment} + {userId >> token} + postId
+
+// merge params
 router.post(
-  "/:postId{/:parentId}",
+  "{/:parentId}",
   //todo: auth,
   //todo: file upload
   //todo: validation
   async (req: Request, res: Response, next: NextFunction) => {
-    await commentService.create(
+    const createdComment = await commentService.create(
       req.body,
       req.params,
       new Types.ObjectId("69ec9daafc88cd3b49827d8d"),
     );
     // send response
-    res.sendStatus(204);
+    res.status(201).json({ data: createdComment }); //done >> no content
   },
 );
 
@@ -52,4 +57,17 @@ router.get(
   },
 );
 
+//search of DFS on comment tree >> find comment by id and delete it and all its children >> recursion or iteration with stack
+//SQL >> ondelete --> cascade
+
+router.delete( 
+  "/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
+    await commentService.delete(
+      new Types.ObjectId(req.params.id as string),
+      new Types.ObjectId("69ec9daafc88cd3b49827d8d"),
+    );
+    return res.sendStatus(204);
+  },
+);
 export default router;

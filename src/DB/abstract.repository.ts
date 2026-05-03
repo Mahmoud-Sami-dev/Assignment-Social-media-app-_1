@@ -13,6 +13,9 @@ export abstract class AbstractRepository<T> {
    *
    * @param item is a generic data which passed to DB
    */
+  get model() {
+    return this._model;
+  }
   public async create(item: Partial<T>) {
     const doc = new this._model(item); // ram
     return doc.save();
