@@ -1,6 +1,6 @@
 // main function run the app
 import express, {NextFunction, Request, Response} from "express";
-import {authRouter, commentRouter, postRouter, requestRouter} from "./modules";
+import {authRouter, commentRouter, postRouter, requestRouter, userRouter} from "./modules";
 import {BadRequestException, NotFoundException} from "./common";
 import {connectDB} from "./DB/connection";
 import {redisConnect} from "./DB/redis.connect";
@@ -52,6 +52,7 @@ export function bootstrap() {
     app.use("/post", postRouter);
     app.use("/comment", commentRouter);
     app.use("/request", requestRouter);
+    app.use("/user", userRouter);
     // global error handler
     app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
         return res.status((error.cause as number) || 500).json({
