@@ -9,6 +9,8 @@ import {pipeline} from "node:stream";
 import {promisify} from "node:util";
 import cors from "cors";
 import {firebasePushNotificationProvider} from "./common/notification/firebase/init";
+import {createHandler} from "graphql-http/lib/use/express";
+import {GraphQLSchema} from "graphql/type";
 
 const pipelinePromise = promisify(pipeline)
 
@@ -33,8 +35,11 @@ export function bootstrap() {
     })
     connectDB();
     redisConnect();
+
     app.use(express.json());
     app.use(cors({origin: "*"}));
+    let schema = new GraphQLSchema({})
+    app.all("/graphql", createHandler({schema}))
 
     // test for notification
     app.post('/send-notification', async (req: Request, res: Response): Promise<void> => {

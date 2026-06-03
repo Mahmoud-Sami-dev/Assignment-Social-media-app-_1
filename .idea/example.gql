@@ -1,0 +1,91 @@
+# graphqlObjectType >> 3 properties >> name >> description? , fields
+# fields >> type, resolve
+query{
+    # RootQuery
+    # graphqlObjectType
+    user{
+        #UserQuery
+   id
+   name
+   email
+   phoneNumber
+   password
+   age
+   isEmailVerified # graphqlBoolean
+   },
+    # graphqlObjectType
+    prpduct{
+        # productQuery
+   id # graphqlID
+   name # graphqlString
+   price #graphqlInt or graphqlFlout
+   discount #graphqlInt or graphqlFlout
+   image # graphqlString
+   coverimages #graphqlList >> node >> node []
+       category{
+           # categoryQuery
+           id
+           name
+           logo
+           products(count:5,cid:"123456"){ # count , cid are an args
+               id
+               name
+               price
+           }
+
+           brand{
+               #BrandQuery
+               id
+               name
+               logo
+           }
+           reviews(count:3){
+               # reviewsQuery
+               id
+               text
+               rate
+               user{
+                   id
+                   name
+                   profilePic
+               }
+           }
+       }
+   }
+    category{
+        id}
+    reviews{
+        id}
+}
+
+mutation {
+    addProduct(name:"iphone17", price:1234567,cid:"123456",brandid:"654321",seller:"32415365",discount:50){
+        name # graphqlString
+        price #graphqlInt or graphqlFlout
+        discount #graphqlInt or graphqlFlout
+        category{
+            id
+            name
+            logo
+            products(count:5,cid:"123456"){ # count , cid are an args
+                id
+                name
+                price
+            }
+            brand{
+                id
+                name
+                logo
+            }
+        }
+    }
+    updateProduct(id:"1",name:"iphone17", price:1234567,cid:"123456",brandid:"654321",seller:"32415365",discount:50){
+        id
+        name # graphqlString
+    }
+    deleteProduct(id:"1"){
+        deleted
+    }
+}
+
+subscription {}
