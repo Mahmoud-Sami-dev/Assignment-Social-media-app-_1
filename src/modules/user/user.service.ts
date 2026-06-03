@@ -21,6 +21,11 @@ class UserService {
         // 3. delete old profilePic
         if (user.profilePic) await this.cloudProvider.deleteFile(user.profilePic)
     }
+
+    async profile(userId: Types.ObjectId) {
+        // @ts-ignore
+        return await this.userRepository.getOne({_id: userId})
+    }
 }
 
 export default new UserService(s3CloudProvider, userRepository);

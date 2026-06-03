@@ -1,4 +1,4 @@
-import {bootstrap} from "./app.controller";
+import bootstrap from "./app.controller";
 
 bootstrap();
 

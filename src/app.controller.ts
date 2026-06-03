@@ -10,11 +10,15 @@ import {promisify} from "node:util";
 import cors from "cors";
 import {firebasePushNotificationProvider} from "./common/notification/firebase/init";
 import {createHandler} from "graphql-http/lib/use/express";
-import {GraphQLSchema} from "graphql/type";
+import {GraphQLObjectType, GraphQLSchema} from "graphql/type";
+import {userGqlQuery} from "./modules/user/graphql/user.gql.query";
+import {postGQLQuery} from "./modules/post/graphql/post.gql.query";
+import {commentGQLQuery} from "./modules/comment/graphql/comment.query.gql";
+
 
 const pipelinePromise = promisify(pipeline)
 
-export function bootstrap() {
+function bootstrap() {
     const app = express();
     const port = 3000;
     // to get files
@@ -38,7 +42,31 @@ export function bootstrap() {
 
     app.use(express.json());
     app.use(cors({origin: "*"}));
-    let schema = new GraphQLSchema({})
+    const query = new GraphQLObjectType({
+        name: "RootQuery",
+        fields: {
+            //user // >> userGqlQuery: ...{user:{type,resolve}}
+            ...userGqlQuery,
+            //post
+            ...postGQLQuery,
+            //comment
+            ...commentGQLQuery
+            //request
+        }
+    })
+    const mutation = new GraphQLObjectType({
+        name: "RootMutation",
+        fields: {
+            // auth
+            // user
+            // post
+            // comment
+            // request
+        }
+    })
+    let schema = new GraphQLSchema({
+        query
+    })
     app.all("/graphql", createHandler({schema}))
 
     // test for notification
@@ -71,3 +99,5 @@ export function bootstrap() {
         console.log(`Server is running on http://localhost:${port}`);
     });
 }
+
+export default bootstrap
